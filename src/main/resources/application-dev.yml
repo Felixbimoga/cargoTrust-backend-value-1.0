@@ -1,0 +1,17 @@
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  flyway:
+    enabled: false
+
+app:
+  security:
+    jwt:
+      secret: dev-secret-key-cargotrust-minimum-256-bits-required-padding-here-done
+
+logging:
+  level:
+    com.gargotrust: DEBUG
+    org.springframework.security: DEBUG
