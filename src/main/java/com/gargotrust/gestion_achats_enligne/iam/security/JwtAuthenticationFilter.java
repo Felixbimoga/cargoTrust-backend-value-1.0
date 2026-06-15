@@ -1,6 +1,7 @@
 package com.gargotrust.gestion_achats_enligne.iam.security;
 
 import com.gargotrust.gestion_achats_enligne.iam.service.JwtService;
+import com.gargotrust.gestion_achats_enligne.iam.security.UserPrincipal;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

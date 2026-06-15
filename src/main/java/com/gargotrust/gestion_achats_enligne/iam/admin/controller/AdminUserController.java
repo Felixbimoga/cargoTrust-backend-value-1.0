@@ -10,6 +10,7 @@ import com.gargotrust.gestion_achats_enligne.iam.domain.Role;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/admin/users")
+@RequestMapping(
+        value = "/api/v1/admin/users",
+        produces = MediaType.APPLICATION_JSON_VALUE
+)
 @PreAuthorize("hasAnyRole(" + Role.ALL_SUPER_ROLES_SPEL + ")")
 @RequiredArgsConstructor
 public class AdminUserController implements IAdminUserController {

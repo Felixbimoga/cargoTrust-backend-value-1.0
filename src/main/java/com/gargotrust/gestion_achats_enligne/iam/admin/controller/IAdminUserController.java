@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -27,13 +28,13 @@ public interface IAdminUserController {
     ResponseEntity<UserDetailResponse> getUserDetail(@PathVariable UUID accountId);
 
     @Operation(summary = "Change user account status (ACTIVE / SUSPENDED)")
-    @PatchMapping("/{accountId}/status")
+    @PatchMapping(value = "/{accountId}/status", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<UserDetailResponse> changeStatus(
             @PathVariable UUID accountId,
             @Valid @RequestBody ChangeUserStatusRequest request);
 
     @Operation(summary = "Change user role")
-    @PatchMapping("/{accountId}/role")
+    @PatchMapping(value = "/{accountId}/role", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<UserDetailResponse> changeRole(
             @PathVariable UUID accountId,
             @Valid @RequestBody ChangeUserRoleRequest request);
