@@ -9,13 +9,17 @@ import com.gargotrust.gestion_achats_enligne.shared.security.CurrentUserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping(
+        value = "/api/v1/auth",
+        produces = MediaType.APPLICATION_JSON_VALUE
+)
 @RequiredArgsConstructor
 public class AuthController implements IAuthController {
 
@@ -24,59 +28,59 @@ public class AuthController implements IAuthController {
     private final CurrentUserContext currentUserContext;
 
     @Override
-    @PostMapping("/register")
+    @PostMapping(value = "/register", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MessageResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.status(201).body(authService.register(request));
     }
 
     @Override
-    @PostMapping("/login")
+    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request,
                                                HttpServletRequest httpRequest) {
         return ResponseEntity.ok(authService.login(request, httpRequest));
     }
 
     @Override
-    @PostMapping("/verify-otp")
+    @PostMapping(value = "/verify-otp", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResponse> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
         return ResponseEntity.ok(authService.verifyOtp(request));
     }
 
     @Override
-    @PostMapping("/refresh")
+    @PostMapping(value = "/refresh", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
 
     @Override
-    @PostMapping("/logout")
+    @PostMapping(value = "/logout", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MessageResponse> logout(@RequestBody RefreshTokenRequest request) {
         authService.logout(request.getRefreshToken());
         return ResponseEntity.ok(new MessageResponse("Déconnexion réussie.", true));
     }
 
     @Override
-    @PostMapping("/forgot-password")
+    @PostMapping(value = "/forgot-password", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MessageResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         return ResponseEntity.ok(authService.forgotPassword(request));
     }
 
     @Override
-    @PostMapping("/reset-password")
+    @PostMapping(value = "/reset-password", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MessageResponse> resetPassword(@RequestParam String token,
                                                        @RequestBody Map<String, String> body) {
         return ResponseEntity.ok(authService.resetPassword(token, body.get("newPassword")));
     }
 
     @Override
-    @PostMapping("/google/token")
+    @PostMapping(value = "/google/token", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResponse> googleToken(@Valid @RequestBody GoogleTokenRequest request,
                                                     HttpServletRequest httpRequest) {
         return ResponseEntity.ok(googleAuthService.loginWithIdToken(request.getIdToken(), httpRequest));
     }
 
     @Override
-    @PostMapping("/google/callback")
+    @PostMapping(value = "/google/callback", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResponse> googleCallback(@Valid @RequestBody GoogleCallbackRequest request,
                                                        HttpServletRequest httpRequest) {
         return ResponseEntity.ok(googleAuthService.loginWithCode(request.getCode(), request.getRedirectUri(), httpRequest));

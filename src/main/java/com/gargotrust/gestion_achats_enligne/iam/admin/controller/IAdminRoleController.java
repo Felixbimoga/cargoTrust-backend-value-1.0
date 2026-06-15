@@ -8,6 +8,7 @@ import com.gargotrust.gestion_achats_enligne.iam.admin.dto.response.RoleDetailRe
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,11 +24,11 @@ public interface IAdminRoleController {
     ResponseEntity<List<RoleDetailResponse>> getAllRoles();
 
     @Operation(summary = "Create a new role")
-    @PostMapping("/roles")
+    @PostMapping(value = "/roles", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<RoleDetailResponse> createRole(@Valid @RequestBody CreateRoleRequest request);
 
     @Operation(summary = "Update role display name / description")
-    @PatchMapping("/roles/{roleId}")
+    @PatchMapping(value = "/roles/{roleId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<RoleDetailResponse> updateRole(
             @PathVariable Long roleId,
             @Valid @RequestBody CreateRoleRequest request);
@@ -37,7 +38,7 @@ public interface IAdminRoleController {
     ResponseEntity<Void> deleteRole(@PathVariable Long roleId);
 
     @Operation(summary = "Assign permissions to a role")
-    @PostMapping("/roles/{roleId}/permissions")
+    @PostMapping(value = "/roles/{roleId}/permissions", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<RoleDetailResponse> assignPermissions(
             @PathVariable Long roleId,
             @Valid @RequestBody AssignPermissionsRequest request);
@@ -53,11 +54,11 @@ public interface IAdminRoleController {
     ResponseEntity<List<PermissionResponse>> getAllPermissions();
 
     @Operation(summary = "Create a new permission")
-    @PostMapping("/permissions")
+    @PostMapping(value = "/permissions", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<PermissionResponse> createPermission(@Valid @RequestBody CreatePermissionRequest request);
 
     @Operation(summary = "Update permission description")
-    @PatchMapping("/permissions/{permissionId}")
+    @PatchMapping(value = "/permissions/{permissionId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<PermissionResponse> updatePermission(
             @PathVariable Long permissionId,
             @Valid @RequestBody CreatePermissionRequest request);
