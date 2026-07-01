@@ -52,7 +52,7 @@ class ProfileServiceTest {
                 .complete(false).build();
 
         when(currentUser.getAccountId()).thenReturn(accountId);
-        when(currentUser.getRole()).thenReturn("ROLE_IMPORTER");
+        when(currentUser.getRole()).thenReturn("ROLE_CLIENT");
     }
 
     // ── getMyProfile ──────────────────────────────────────────────────────────

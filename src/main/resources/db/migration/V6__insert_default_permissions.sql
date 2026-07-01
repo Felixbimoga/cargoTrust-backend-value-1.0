@@ -23,50 +23,29 @@ INSERT INTO permissions (name, resource, action, description) VALUES
 ('incidents:read',     'incidents',  'read',     'Consulter les incidents'),
 ('incidents:manage',   'incidents',  'manage',   'Gérer les incidents');
 
--- ROLE_IMPORTER
+-- ROLE_CLIENT (importateur)
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r JOIN permissions p ON 1=1
-WHERE r.name = 'ROLE_IMPORTER'
+WHERE r.name = 'ROLE_CLIENT'
   AND p.name IN ('orders:create','orders:read','orders:cancel','shipments:read',
                  'proofs:read','payments:read','payments:initiate','incidents:read');
 
--- ROLE_AGENT
+-- ROLE_TRANSITAIRE
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r JOIN permissions p ON 1=1
-WHERE r.name = 'ROLE_AGENT'
+WHERE r.name = 'ROLE_TRANSITAIRE'
   AND p.name IN ('orders:read','shipments:read','shipments:update',
                  'proofs:create','proofs:read','incidents:read');
 
--- ROLE_ADMIN_FORWARDER
+-- ROLE_ADMIN_TRANSITAIRE
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r JOIN permissions p ON 1=1
-WHERE r.name = 'ROLE_ADMIN_FORWARDER'
+WHERE r.name = 'ROLE_ADMIN_TRANSITAIRE'
   AND p.name IN ('orders:read_all','orders:update','shipments:read','shipments:update',
                  'proofs:read','payments:read','payments:validate','users:read',
                  'incidents:read','incidents:manage');
 
--- ROLE_SUPER_RESPONSIBLE : toutes les permissions
+-- ROLE_SUPER_ADMIN : toutes les permissions
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r JOIN permissions p ON 1=1
-WHERE r.name = 'ROLE_SUPER_RESPONSIBLE';
-
--- ROLE_SUPER_COMMERCIAL
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id FROM roles r JOIN permissions p ON 1=1
-WHERE r.name = 'ROLE_SUPER_COMMERCIAL'
-  AND p.name IN ('users:read','users:manage','forwarders:read','forwarders:manage',
-                 'orders:read_all','analytics:read');
-
--- ROLE_SUPER_FINANCIAL
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id FROM roles r JOIN permissions p ON 1=1
-WHERE r.name = 'ROLE_SUPER_FINANCIAL'
-  AND p.name IN ('payments:read','payments:validate','orders:read_all',
-                 'analytics:read','users:read');
-
--- ROLE_SUPER_PACKAGE
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT r.id, p.id FROM roles r JOIN permissions p ON 1=1
-WHERE r.name = 'ROLE_SUPER_PACKAGE'
-  AND p.name IN ('shipments:read','shipments:update','proofs:read','orders:read_all',
-                 'analytics:read','incidents:read','incidents:manage');
+WHERE r.name = 'ROLE_SUPER_ADMIN';

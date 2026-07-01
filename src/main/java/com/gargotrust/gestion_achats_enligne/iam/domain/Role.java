@@ -33,19 +33,8 @@ public class Role {
     private Set<RolePermission> rolePermissions = new HashSet<>();
 
     // ── Constantes rôles CargoTrust ────────────────────────────────────────────
-    public static final String IMPORTER          = "ROLE_IMPORTER";
-    public static final String AGENT             = "ROLE_AGENT";
-    public static final String ADMIN_FORWARDER   = "ROLE_ADMIN_FORWARDER";
-    public static final String SUPER_RESPONSIBLE = "ROLE_SUPER_RESPONSIBLE";
-    public static final String SUPER_COMMERCIAL  = "ROLE_SUPER_COMMERCIAL";
-    public static final String SUPER_FINANCIAL   = "ROLE_SUPER_FINANCIAL";
-    public static final String SUPER_PACKAGE     = "ROLE_SUPER_PACKAGE";
-
-    public static final String[] ALL_SUPER_ROLES = {
-        SUPER_RESPONSIBLE, SUPER_COMMERCIAL, SUPER_FINANCIAL, SUPER_PACKAGE
-    };
-
-    /** SpEL-ready list for use in @PreAuthorize("hasAnyRole(" + Role.ALL_SUPER_ROLES_SPEL + ")") */
-    public static final String ALL_SUPER_ROLES_SPEL =
-            "'SUPER_RESPONSIBLE','SUPER_COMMERCIAL','SUPER_FINANCIAL','SUPER_PACKAGE'";
+    public static final String SUPER_ADMIN       = "ROLE_SUPER_ADMIN";
+    public static final String ADMIN_TRANSITAIRE = "ROLE_ADMIN_TRANSITAIRE";
+    public static final String TRANSITAIRE       = "ROLE_TRANSITAIRE";
+    public static final String CLIENT            = "ROLE_CLIENT";
 }

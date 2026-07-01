@@ -54,7 +54,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        testRole = Role.builder().id(1L).name(Role.IMPORTER).build();
+        testRole = Role.builder().id(1L).name(Role.CLIENT).build();
 
         testAccount = Account.builder()
                 .id(UUID.randomUUID()).email("test@example.com")
@@ -87,7 +87,7 @@ class AuthServiceTest {
 
         when(accountRepository.existsByEmail("new@example.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
-        when(roleRepository.findByName(Role.IMPORTER)).thenReturn(Optional.of(testRole));
+        when(roleRepository.findByName(Role.CLIENT)).thenReturn(Optional.of(testRole));
         when(accountRepository.save(any(Account.class))).thenAnswer(inv -> {
             Account a = inv.getArgument(0);
             if (a.getId() == null) a.setId(UUID.randomUUID());

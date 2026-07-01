@@ -151,8 +151,8 @@ public class GoogleAuthService {
     }
 
     private Account createGoogleAccount(String googleId, String email, GoogleIdToken.Payload payload) {
-        Role role = roleRepo.findByName(Role.IMPORTER)
-                .orElseThrow(() -> new RuntimeException("ROLE_IMPORTER not found"));
+        Role role = roleRepo.findByName(Role.CLIENT)
+                .orElseThrow(() -> new RuntimeException("ROLE_CLIENT not found"));
 
         Account account = Account.builder()
                 .email(email)
@@ -220,7 +220,7 @@ public class GoogleAuthService {
 
     private String extractRoleName(Account account) {
         return account.getAccountRoles().stream()
-                .findFirst().map(ar -> ar.getRole().getName()).orElse(Role.IMPORTER);
+                .findFirst().map(ar -> ar.getRole().getName()).orElse(Role.CLIENT);
     }
 
     private List<String> loadPermissions(Account account) {

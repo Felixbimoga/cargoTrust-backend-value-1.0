@@ -3,6 +3,7 @@ package com.gargotrust.gestion_achats_enligne.iam.admin.service;
 import com.gargotrust.gestion_achats_enligne.iam.IamException;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.ChangeUserRoleRequest;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.ChangeUserStatusRequest;
+import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.CreateUserRequest;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.UserSearchRequest;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.response.UserDetailResponse;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.response.UserSummaryResponse;
@@ -14,17 +15,21 @@ import com.gargotrust.gestion_achats_enligne.iam.repository.AccountRepository;
 import com.gargotrust.gestion_achats_enligne.iam.repository.AccountRoleRepository;
 import com.gargotrust.gestion_achats_enligne.iam.repository.RoleRepository;
 import com.gargotrust.gestion_achats_enligne.shared.security.CurrentUserContext;
+import com.gargotrust.gestion_achats_enligne.shared.service.EmailService;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -36,6 +41,16 @@ public class AdminUserService implements IAdminUserService {
     private final RoleRepository        roleRepo;
     private final IProfileService       profileService;
     private final CurrentUserContext    currentUser;
+    private final PasswordEncoder       passwordEncoder;
+    private final EmailService          emailService;
+
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final String PWD_CHARS =
+            "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*";
+
+    /** Rôles qu'un ADMIN_TRANSITAIRE est autorisé à créer (anti-escalade de privilèges). */
+    private static final Set<String> ADMIN_TRANSITAIRE_CREATABLE_ROLES =
+            Set.of(Role.TRANSITAIRE, Role.CLIENT);
 
     @Override
     @Transactional(readOnly = true)
@@ -49,6 +64,40 @@ public class AdminUserService implements IAdminUserService {
     @Transactional(readOnly = true)
     public UserDetailResponse getUserDetail(UUID accountId) {
         Account account = findAccount(accountId);
+        return toDetail(account);
+    }
+
+    @Override
+    @Transactional
+    public UserDetailResponse createUser(CreateUserRequest req) {
+        if (accountRepo.existsByEmail(req.getEmail())) {
+            throw new IamException(IamException.ACCOUNT_ALREADY_EXISTS);
+        }
+
+        String targetRoleName = normalizeRoleName(req.getRoleName());
+        Role role = roleRepo.findByName(targetRoleName)
+                .orElseThrow(() -> new IamException(IamException.ROLE_NOT_FOUND));
+
+        enforceCreationRights(targetRoleName);
+
+        // Compte directement actif — aucune vérification OTP requise.
+        String temporaryPassword = generateTemporaryPassword();
+        Account account = Account.builder()
+                .email(req.getEmail())
+                .passwordHash(passwordEncoder.encode(temporaryPassword))
+                .status(Account.AccountStatus.ACTIVE)
+                .build();
+
+        AccountRole accountRole = AccountRole.builder().account(account).role(role).build();
+        account.getAccountRoles().add(accountRole);
+        accountRepo.save(account);
+
+        profileService.createProfileForNewAccount(account.getId(), req.getFirstName(), req.getLastName());
+
+        // Envoi du mot de passe + message de bienvenue. En cas d'échec, la transaction est annulée
+        // pour éviter un compte orphelin dont personne ne connaît le mot de passe.
+        emailService.sendWelcomeEmail(account.getEmail(), temporaryPassword, role.getDisplayName());
+
         return toDetail(account);
     }
 
@@ -77,6 +126,28 @@ public class AdminUserService implements IAdminUserService {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private String normalizeRoleName(String raw) {
+        String upper = raw.trim().toUpperCase();
+        return upper.startsWith("ROLE_") ? upper : "ROLE_" + upper;
+    }
+
+    /** Empêche un ADMIN_TRANSITAIRE de créer un compte de niveau égal ou supérieur. */
+    private void enforceCreationRights(String targetRoleName) {
+        String creatorRole = currentUser.getRole();
+        if (Role.ADMIN_TRANSITAIRE.equals(creatorRole)
+                && !ADMIN_TRANSITAIRE_CREATABLE_ROLES.contains(targetRoleName)) {
+            throw new IamException(IamException.CANNOT_CREATE_ROLE);
+        }
+    }
+
+    private String generateTemporaryPassword() {
+        StringBuilder sb = new StringBuilder(12);
+        for (int i = 0; i < 12; i++) {
+            sb.append(PWD_CHARS.charAt(RANDOM.nextInt(PWD_CHARS.length())));
+        }
+        return sb.toString();
+    }
 
     private Account findAccount(UUID accountId) {
         return accountRepo.findById(accountId)
@@ -140,7 +211,7 @@ public class AdminUserService implements IAdminUserService {
             }
 
             if (req.getRole() != null && !req.getRole().isBlank()) {
-                // Accepte "IMPORTER" ou "ROLE_IMPORTER"
+                // Accepte "CLIENT" ou "ROLE_CLIENT"
                 String roleName = req.getRole().startsWith("ROLE_")
                         ? req.getRole().toUpperCase()
                         : "ROLE_" + req.getRole().toUpperCase();

@@ -31,10 +31,10 @@ public class UpdateProfileRequest {
 
     @Schema(description = """
         Champs spécifiques au rôle :
-        - ROLE_IMPORTER   → { "importerType": "SME|BEGINNER|ECOMMERCE|LARGE_IMPORTER" }
-        - ROLE_AGENT      → { "position": "...", "forwarderId": "uuid" }
-        - ROLE_ADMIN_FORWARDER → { "operationalPosition": "...", "forwarderId": "uuid", "additionalPermissions": ["ACCOUNTANT"] }
-        - ROLE_SUPER_*    → { "superRole": "DEVELOPER|COMMERCIAL|ACCOUNTANT|SUPER_ADMIN" }
+        - ROLE_CLIENT            → { "importerType": "SME|BEGINNER|ECOMMERCE|LARGE_IMPORTER" }
+        - ROLE_TRANSITAIRE       → { "position": "...", "forwarderId": "uuid" }
+        - ROLE_ADMIN_TRANSITAIRE → { "operationalPosition": "...", "forwarderId": "uuid", "additionalPermissions": ["ACCOUNTANT"] }
+        - ROLE_SUPER_ADMIN       → { } (champs communs suffisent)
         """,
         example = "{\"importerType\": \"SME\"}")
     private Map<String, Object> roleMetadata;

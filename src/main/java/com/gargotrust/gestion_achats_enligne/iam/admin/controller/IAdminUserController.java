@@ -2,6 +2,7 @@ package com.gargotrust.gestion_achats_enligne.iam.admin.controller;
 
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.ChangeUserRoleRequest;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.ChangeUserStatusRequest;
+import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.CreateUserRequest;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.UserSearchRequest;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.response.UserDetailResponse;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.response.UserSummaryResponse;
@@ -26,6 +27,11 @@ public interface IAdminUserController {
     @Operation(summary = "Get full user detail including profile")
     @GetMapping("/{accountId}")
     ResponseEntity<UserDetailResponse> getUserDetail(@PathVariable UUID accountId);
+
+    @Operation(summary = "Create a user from the dashboard (no OTP). "
+            + "Account is activated immediately and the temporary password is emailed to the user.")
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<UserDetailResponse> createUser(@Valid @RequestBody CreateUserRequest request);
 
     @Operation(summary = "Change user account status (ACTIVE / SUSPENDED)")
     @PatchMapping(value = "/{accountId}/status", consumes = MediaType.APPLICATION_JSON_VALUE)

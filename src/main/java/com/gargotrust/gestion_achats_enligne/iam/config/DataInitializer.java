@@ -42,29 +42,20 @@ public class DataInitializer implements CommandLineRunner {
     private void initializeRoles() {
         if (roleRepository.count() == 0) {
             roleRepository.saveAll(List.of(
-                Role.builder().name(Role.IMPORTER)
-                    .displayName("Importateur")
-                    .description("Importateur — gestion commandes, paiements, suivi").build(),
-                Role.builder().name(Role.AGENT)
-                    .displayName("Agent Terrain")
-                    .description("Agent terrain — scan QR, capture preuves").build(),
-                Role.builder().name(Role.ADMIN_FORWARDER)
+                Role.builder().name(Role.SUPER_ADMIN)
+                    .displayName("Super Admin")
+                    .description("Super Admin — accès total au système").build(),
+                Role.builder().name(Role.ADMIN_TRANSITAIRE)
                     .displayName("Admin Transitaire")
                     .description("Admin transitaire — gestion expéditions, validations").build(),
-                Role.builder().name(Role.SUPER_RESPONSIBLE)
-                    .displayName("Super Responsable")
-                    .description("Super Admin Responsable — accès total").build(),
-                Role.builder().name(Role.SUPER_COMMERCIAL)
-                    .displayName("Super Commercial")
-                    .description("Super Admin Commercial — gestion transitaires").build(),
-                Role.builder().name(Role.SUPER_FINANCIAL)
-                    .displayName("Super Financier")
-                    .description("Super Admin Financier — supervision paiements").build(),
-                Role.builder().name(Role.SUPER_PACKAGE)
-                    .displayName("Super Colis")
-                    .description("Super Admin Colis — supervision logistique").build()
+                Role.builder().name(Role.TRANSITAIRE)
+                    .displayName("Transitaire")
+                    .description("Transitaire — opérations terrain, scan QR, preuves").build(),
+                Role.builder().name(Role.CLIENT)
+                    .displayName("Client")
+                    .description("Client (importateur) — commandes, paiements, suivi").build()
             ));
-            log.info("7 rôles CargoTrust initialisés.");
+            log.info("4 rôles CargoTrust initialisés.");
         } else {
             log.info("Rôles déjà présents en base, initialisation ignorée.");
         }
@@ -76,8 +67,8 @@ public class DataInitializer implements CommandLineRunner {
             return;
         }
 
-        Role superRole = roleRepository.findByName(Role.SUPER_RESPONSIBLE)
-                .orElseThrow(() -> new IllegalStateException("ROLE_SUPER_RESPONSIBLE introuvable"));
+        Role superRole = roleRepository.findByName(Role.SUPER_ADMIN)
+                .orElseThrow(() -> new IllegalStateException("ROLE_SUPER_ADMIN introuvable"));
 
         Account admin = Account.builder()
                 .email(superAdminEmail)

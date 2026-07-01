@@ -47,4 +47,5 @@ public class IamException extends RuntimeException {
     public static final String PERMISSION_NOT_FOUND    = "ERR_PERMISSION_NOT_FOUND";
     public static final String PERMISSION_ALREADY_EXISTS = "ERR_PERMISSION_ALREADY_EXISTS";
     public static final String CANNOT_CHANGE_OWN_ROLE  = "ERR_CANNOT_CHANGE_OWN_ROLE";
+    public static final String CANNOT_CREATE_ROLE      = "ERR_CANNOT_CREATE_ROLE";
 }

@@ -14,7 +14,7 @@ public class UserSearchRequest {
     @Schema(description = "Filtre sur le statut", allowableValues = {"ACTIVE", "SUSPENDED", "PENDING_VERIFICATION"})
     private String status;
 
-    @Schema(description = "Filtre sur le rôle (ex: ROLE_IMPORTER)")
+    @Schema(description = "Filtre sur le rôle (ex: ROLE_CLIENT)")
     private String role;
 
     @Min(value = 0, message = "La page doit être >= 0")

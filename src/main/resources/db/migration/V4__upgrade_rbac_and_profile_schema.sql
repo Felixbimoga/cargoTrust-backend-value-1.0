@@ -15,13 +15,10 @@ ALTER TABLE roles
     ADD COLUMN display_name VARCHAR(150) NULL AFTER name,
     ADD COLUMN is_system    BOOLEAN NOT NULL DEFAULT TRUE AFTER description;
 
-UPDATE roles SET display_name = 'Importateur'            WHERE name = 'ROLE_IMPORTER';
-UPDATE roles SET display_name = 'Agent Terrain'          WHERE name = 'ROLE_AGENT';
-UPDATE roles SET display_name = 'Admin Transitaire'      WHERE name = 'ROLE_ADMIN_FORWARDER';
-UPDATE roles SET display_name = 'Super Admin Responsable' WHERE name = 'ROLE_SUPER_RESPONSIBLE';
-UPDATE roles SET display_name = 'Super Admin Commercial' WHERE name = 'ROLE_SUPER_COMMERCIAL';
-UPDATE roles SET display_name = 'Super Admin Financier'  WHERE name = 'ROLE_SUPER_FINANCIAL';
-UPDATE roles SET display_name = 'Super Admin Colis'      WHERE name = 'ROLE_SUPER_PACKAGE';
+UPDATE roles SET display_name = 'Super Admin'       WHERE name = 'ROLE_SUPER_ADMIN';
+UPDATE roles SET display_name = 'Admin Transitaire' WHERE name = 'ROLE_ADMIN_TRANSITAIRE';
+UPDATE roles SET display_name = 'Transitaire'       WHERE name = 'ROLE_TRANSITAIRE';
+UPDATE roles SET display_name = 'Client'            WHERE name = 'ROLE_CLIENT';
 
 -- Table des permissions atomiques
 CREATE TABLE permissions (

@@ -132,10 +132,10 @@ public class ProfileService implements IProfileService {
         if (!commonOk) return false;
         Map<String,Object> meta = fromJson(p.getRoleMetadata());
         return switch (role) {
-            case "ROLE_IMPORTER"       -> meta.containsKey("importerType");
-            case "ROLE_AGENT"          -> meta.containsKey("position");
-            case "ROLE_ADMIN_FORWARDER"-> meta.containsKey("operationalPosition") && meta.containsKey("forwarderId");
-            default                    -> true; // super admins : champs communs suffisent
+            case "ROLE_CLIENT"            -> meta.containsKey("importerType");
+            case "ROLE_TRANSITAIRE"       -> meta.containsKey("position");
+            case "ROLE_ADMIN_TRANSITAIRE" -> meta.containsKey("operationalPosition") && meta.containsKey("forwarderId");
+            default                       -> true; // super admin : champs communs suffisent
         };
     }
 

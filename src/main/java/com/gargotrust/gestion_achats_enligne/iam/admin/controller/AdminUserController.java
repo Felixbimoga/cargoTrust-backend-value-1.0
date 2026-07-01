@@ -2,14 +2,15 @@ package com.gargotrust.gestion_achats_enligne.iam.admin.controller;
 
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.ChangeUserRoleRequest;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.ChangeUserStatusRequest;
+import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.CreateUserRequest;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.UserSearchRequest;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.response.UserDetailResponse;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.response.UserSummaryResponse;
 import com.gargotrust.gestion_achats_enligne.iam.admin.service.IAdminUserService;
-import com.gargotrust.gestion_achats_enligne.iam.domain.Role;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +23,7 @@ import java.util.UUID;
         value = "/api/v1/admin/users",
         produces = MediaType.APPLICATION_JSON_VALUE
 )
-@PreAuthorize("hasAnyRole(" + Role.ALL_SUPER_ROLES_SPEL + ")")
+@PreAuthorize("hasRole('SUPER_ADMIN')")
 @RequiredArgsConstructor
 public class AdminUserController implements IAdminUserController {
 
@@ -36,6 +37,12 @@ public class AdminUserController implements IAdminUserController {
     @Override
     public ResponseEntity<UserDetailResponse> getUserDetail(@PathVariable UUID accountId) {
         return ResponseEntity.ok(adminUserService.getUserDetail(accountId));
+    }
+
+    @Override
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN_TRANSITAIRE')")
+    public ResponseEntity<UserDetailResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(adminUserService.createUser(request));
     }
 
     @Override

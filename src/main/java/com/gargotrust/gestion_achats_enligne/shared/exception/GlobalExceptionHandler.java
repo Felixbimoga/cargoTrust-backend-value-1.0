@@ -80,7 +80,8 @@ public class GlobalExceptionHandler {
             case IamException.ACCOUNT_SUSPENDED,
                  IamException.ACCOUNT_PENDING_VERIFICATION,
                  IamException.PROFILE_ROLE_MISMATCH,
-                 IamException.CANNOT_CHANGE_OWN_ROLE       -> 403;
+                 IamException.CANNOT_CHANGE_OWN_ROLE,
+                 IamException.CANNOT_CREATE_ROLE           -> 403;
 
             case IamException.ACCOUNT_ALREADY_EXISTS,
                  IamException.ROLE_ALREADY_EXISTS,

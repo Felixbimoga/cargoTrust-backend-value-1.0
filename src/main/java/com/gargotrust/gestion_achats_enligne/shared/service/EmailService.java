@@ -36,6 +36,23 @@ public class EmailService {
         }
     }
 
+    public void sendWelcomeEmail(String to, String temporaryPassword, String roleDisplayName) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail, "CargoTrust");
+            helper.setTo(to);
+            helper.setSubject("CargoTrust - Bienvenue ! Votre compte a été créé");
+            helper.setText(buildWelcomeHtml(to, temporaryPassword, roleDisplayName), true); // true = HTML
+
+            mailSender.send(message);
+            log.info("Welcome email sent successfully to: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send welcome email to: {}", to, e);
+            throw new RuntimeException("Failed to send welcome email", e);
+        }
+    }
+
     public void sendPasswordResetEmail(String to, String resetLink) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -98,6 +115,40 @@ public class EmailService {
             Cordialement,
             L'équipe CargoTrust
             """.formatted(resetLink);
+    }
+
+    private String buildWelcomeHtml(String email, String temporaryPassword, String roleDisplayName) {
+        return ("""
+        <!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"></head>
+        <body style="margin:0;padding:24px 12px;background:#EAEEF2;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+          <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:#EAEEF2;"><tr><td align="center">
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%%;background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(13,27,42,.10);">
+              <tr><td align="center" style="background:#0D1B2A;padding:30px 24px;">
+                <div style="font-size:24px;font-weight:700;color:#FFFFFF;">Cargo<span style="color:#F77F00;">Trust</span></div>
+                <div style="font-size:11px;color:#9FB0C4;letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;">Plateforme d'importations s&eacute;curis&eacute;e</div>
+              </td></tr>
+              <tr><td style="padding:38px 40px 30px;">
+                <h1 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#0D1B2A;">Bienvenue sur CargoTrust&nbsp;!</h1>
+                <p style="margin:0 0 22px;font-size:15px;line-height:1.55;color:#6B7A8F;">Un compte vient d'&ecirc;tre cr&eacute;&eacute; pour vous avec le r&ocirc;le <strong style="color:#0D1B2A;">%s</strong>. Votre compte est <strong>actif</strong> : vous pouvez vous connecter d&egrave;s maintenant avec les identifiants ci-dessous.</p>
+                <p style="margin:0 0 10px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#94A3B8;">Vos identifiants de connexion</p>
+                <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:#F4F6FA;border:1px solid #E9EDF4;border-top:3px solid #F77F00;border-radius:14px;"><tr>
+                  <td style="padding:20px 24px;">
+                    <p style="margin:0 0 6px;font-size:13px;color:#6B7A8F;">Email&nbsp;: <strong style="color:#0D1B2A;">%s</strong></p>
+                    <p style="margin:0;font-size:13px;color:#6B7A8F;">Mot de passe temporaire&nbsp;: <strong style="font-size:18px;letter-spacing:2px;color:#0D1B2A;">%s</strong></p>
+                  </td>
+                </tr></table>
+                <p style="margin:22px 0 0;font-size:14px;line-height:1.55;color:#0D1B2A;">&#128274;&nbsp; Pour votre s&eacute;curit&eacute;, <strong>changez ce mot de passe</strong> apr&egrave;s votre premi&egrave;re connexion. Vous pourrez &eacute;galement compl&eacute;ter votre profil &agrave; tout moment.</p>
+                <p style="margin:8px 0 0;font-size:13px;line-height:1.55;color:#6B7A8F;">Ne partagez ces identifiants avec personne. Si vous n'&ecirc;tes pas concern&eacute; par cette cr&eacute;ation de compte, ignorez cet email.</p>
+                <div style="height:1px;background:#E9EDF4;margin:28px 0 20px;"></div>
+                <p style="margin:0;font-size:14px;color:#6B7A8F;">Cordialement,<br><strong style="color:#0D1B2A;">L'&eacute;quipe CargoTrust</strong></p>
+              </td></tr>
+              <tr><td align="center" style="background:#F4F6FA;padding:20px 24px;border-top:1px solid #E9EDF4;">
+                <p style="margin:0;font-size:11.5px;color:#94A3B8;">&copy; CargoTrust &middot; Email automatique, merci de ne pas y r&eacute;pondre.</p>
+              </td></tr>
+            </table>
+          </td></tr></table>
+        </body></html>
+        """).formatted(roleDisplayName, email, temporaryPassword);
     }
 
     private String buildHtml(String title, String intro, String otpCode, String expiry) {

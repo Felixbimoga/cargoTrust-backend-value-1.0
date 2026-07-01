@@ -6,7 +6,6 @@ import com.gargotrust.gestion_achats_enligne.iam.admin.dto.request.CreateRoleReq
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.response.PermissionResponse;
 import com.gargotrust.gestion_achats_enligne.iam.admin.dto.response.RoleDetailResponse;
 import com.gargotrust.gestion_achats_enligne.iam.admin.service.IAdminRoleService;
-import com.gargotrust.gestion_achats_enligne.iam.domain.Role;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,7 +21,7 @@ import java.util.List;
         value = "/api/v1/admin",
         produces = MediaType.APPLICATION_JSON_VALUE
 )
-@PreAuthorize("hasAnyRole(" + Role.ALL_SUPER_ROLES_SPEL + ")")
+@PreAuthorize("hasRole('SUPER_ADMIN')")
 @RequiredArgsConstructor
 public class AdminRoleController implements IAdminRoleController {
 

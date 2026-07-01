@@ -26,7 +26,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String role = account.getAccountRoles().stream()
                 .findFirst()
                 .map(ar -> ar.getRole().getName())
-                .orElse("ROLE_IMPORTER");
+                .orElse("ROLE_CLIENT");
 
         return new User(
                 account.getEmail(),
