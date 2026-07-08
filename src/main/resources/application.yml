@@ -63,6 +63,14 @@ app:
     email: ${SUPER_ADMIN_EMAIL:cargotrust237@gmail.com}
     password: ${SUPER_ADMIN_PASSWORD:Admin.123}
 
+  admin-transitaire:
+    email: ${ADMIN_TRANSITAIRE_EMAIL:atanganalorel@gmail.com}
+    password: ${ADMIN_TRANSITAIRE_PASSWORD:AdminTransitaire.123}
+
+  transitaire:
+    email: ${TRANSITAIRE_EMAIL:felixbimoga47@gmail.com}
+    password: ${TRANSITAIRE_PASSWORD:Transitaire.123}
+
   storage:
     strategy: local
     local:

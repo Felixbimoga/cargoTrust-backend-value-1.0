@@ -23,29 +23,32 @@ import java.util.UUID;
         value = "/api/v1/admin/users",
         produces = MediaType.APPLICATION_JSON_VALUE
 )
-@PreAuthorize("hasRole('SUPER_ADMIN')")
+//@PreAuthorize("hasRole('SUPER_ADMIN')")
 @RequiredArgsConstructor
 public class AdminUserController implements IAdminUserController {
 
     private final IAdminUserService adminUserService;
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN_TRANSITAIRE', 'SUPER_ADMIN')")
     public ResponseEntity<Page<UserSummaryResponse>> searchUsers(@Valid @ModelAttribute UserSearchRequest request) {
         return ResponseEntity.ok(adminUserService.searchUsers(request));
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN_TRANSITAIRE')")
     public ResponseEntity<UserDetailResponse> getUserDetail(@PathVariable UUID accountId) {
         return ResponseEntity.ok(adminUserService.getUserDetail(accountId));
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN_TRANSITAIRE')")
+    @PreAuthorize("hasAnyRole('ADMIN_TRANSITAIRE')")
     public ResponseEntity<UserDetailResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(adminUserService.createUser(request));
     }
 
     @Override
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<UserDetailResponse> changeStatus(
             @PathVariable UUID accountId,
             @Valid @RequestBody ChangeUserStatusRequest request) {
@@ -53,6 +56,7 @@ public class AdminUserController implements IAdminUserController {
     }
 
     @Override
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<UserDetailResponse> changeRole(
             @PathVariable UUID accountId,
             @Valid @RequestBody ChangeUserRoleRequest request) {
