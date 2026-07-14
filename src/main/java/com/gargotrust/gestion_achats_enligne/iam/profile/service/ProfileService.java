@@ -8,7 +8,7 @@ import com.gargotrust.gestion_achats_enligne.iam.profile.domain.UserProfile;
 import com.gargotrust.gestion_achats_enligne.iam.profile.dto.request.UpdateProfileRequest;
 import com.gargotrust.gestion_achats_enligne.iam.profile.dto.response.ProfileResponse;
 import com.gargotrust.gestion_achats_enligne.iam.profile.repository.UserProfileRepository;
-import com.gargotrust.gestion_achats_enligne.iam.service.StorageService;
+import com.gargotrust.gestion_achats_enligne.shared.service.StorageService;
 import com.gargotrust.gestion_achats_enligne.shared.security.CurrentUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

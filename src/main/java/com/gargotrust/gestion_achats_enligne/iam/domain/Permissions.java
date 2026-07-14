@@ -30,6 +30,9 @@ public final class Permissions {
     public static final String FORWARDERS_READ   = "forwarders:read";
     public static final String FORWARDERS_MANAGE = "forwarders:manage";
 
+    public static final String CATALOG_READ   = "catalog:read";
+    public static final String CATALOG_MANAGE = "catalog:manage";
+
     public static final String ANALYTICS_READ = "analytics:read";
 
     public static final String INCIDENTS_READ   = "incidents:read";

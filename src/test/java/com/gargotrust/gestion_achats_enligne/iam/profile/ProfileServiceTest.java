@@ -7,7 +7,7 @@ import com.gargotrust.gestion_achats_enligne.iam.profile.dto.request.UpdateProfi
 import com.gargotrust.gestion_achats_enligne.iam.profile.dto.response.ProfileResponse;
 import com.gargotrust.gestion_achats_enligne.iam.profile.repository.UserProfileRepository;
 import com.gargotrust.gestion_achats_enligne.iam.profile.service.ProfileService;
-import com.gargotrust.gestion_achats_enligne.iam.service.StorageService;
+import com.gargotrust.gestion_achats_enligne.shared.service.StorageService;
 import com.gargotrust.gestion_achats_enligne.shared.security.CurrentUserContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -45,6 +45,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(400).body(ApiError.of("ERR_PROFILE_PHOTO_TOO_LARGE", 400));
     }
 
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<ApiError> handleDomain(DomainException ex) {
+        return ResponseEntity.status(ex.getHttpStatus()).body(ApiError.of(ex.getErrorCode(), ex.getHttpStatus()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
