@@ -42,7 +42,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiError> handleUploadSize(MaxUploadSizeExceededException ex) {
-        return ResponseEntity.status(400).body(ApiError.of("ERR_PROFILE_PHOTO_TOO_LARGE", 400));
+        // Générique : s'applique aux photos comme aux documents KYC (limite portée par le service).
+        return ResponseEntity.status(400).body(ApiError.of(StorageException.FILE_TOO_LARGE, 400));
     }
 
     @ExceptionHandler(DomainException.class)

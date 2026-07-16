@@ -5,6 +5,50 @@ Couvre l'intégralité du module IAM : authentification, profil utilisateur, et 
 
 ---
 
+## ⚠️ Changements cassants (breaking changes) — à lire en premier
+
+> Cette version **remplace les 7 anciens rôles par 4 rôles**, avec de **nouveaux noms**, et **corrige le format des réponses d'erreur**. Si votre front vérifie encore les anciens noms de rôle ou lit `errorCode`/`status`, **certains écrans casseront** (utilisateurs sans accès, réponses non parsées). Voici tout ce qui change.
+
+### 1) Rôles : 7 → 4 (renommés). Table de correspondance
+
+| Ancien rôle (obsolète) | Nouveau rôle | Cible |
+|---|---|---|
+| `ROLE_IMPORTER` | **`ROLE_CLIENT`** | Importateur / acheteur |
+| `ROLE_AGENT` | **`ROLE_TRANSITAIRE`** | Agent de terrain (employé transitaire) |
+| `ROLE_ADMIN_FORWARDER` | **`ROLE_ADMIN_TRANSITAIRE`** | Propriétaire d'une entreprise de transit |
+| `ROLE_SUPER_RESPONSIBLE` | **`ROLE_SUPER_ADMIN`** | Administration CargoTrust |
+| `ROLE_SUPER_COMMERCIAL` | **`ROLE_SUPER_ADMIN`** *(fusionné)* | — |
+| `ROLE_SUPER_FINANCIAL` | **`ROLE_SUPER_ADMIN`** *(fusionné)* | — |
+| `ROLE_SUPER_PACKAGE` | **`ROLE_SUPER_ADMIN`** *(fusionné)* | — |
+
+👉 **Les 4 sous-rôles « super » sont fusionnés en un seul `ROLE_SUPER_ADMIN`.** Le claim `role` du JWT contient désormais l'une de ces 4 valeurs uniquement. Tout `if (role === 'ROLE_IMPORTER')`, `'ROLE_AGENT'`, `'ROLE_ADMIN_FORWARDER'`, `'ROLE_SUPER_*'` **doit être remplacé**.
+
+### 2) Format des réponses d'erreur (renommage de champs)
+
+L'objet d'erreur renvoyé par **toute** l'API est désormais :
+
+```json
+{ "code": "ERR_INVALID_CREDENTIALS", "httpStatus": 401, "timestamp": "2026-07-14T10:30:00Z", "details": null }
+```
+
+| Ancien champ (obsolète) | Nouveau champ |
+|---|---|
+| `errorCode` | **`code`** |
+| `status` | **`httpStatus`** |
+| `errors` (validation) | **`details`** |
+
+Sur une erreur de validation : `code = "ERR_VALIDATION"`, `httpStatus = 400`, et **`details`** contient la map `champ → message`.
+
+### 3) Nouveau compte = `ROLE_CLIENT`
+
+L'inscription classique **et** la 1re connexion Google créent un compte **`ROLE_CLIENT`** (anciennement `ROLE_IMPORTER`).
+
+### 4) Accès admin repensé (voir §7)
+
+L'accès au back-office n'est plus « les 4 rôles super » : il est piloté par `ROLE_SUPER_ADMIN` et `ROLE_ADMIN_TRANSITAIRE` selon l'endpoint. Un `ROLE_ADMIN_TRANSITAIRE` peut désormais lister les utilisateurs et créer des comptes (agents/clients) — ce qui explique que certains écrans admin autrefois interdits soient maintenant accessibles, et inversement.
+
+---
+
 ## Sommaire
 
 1. [Informations générales](#1-informations-générales)
@@ -34,28 +78,32 @@ Couvre l'intégralité du module IAM : authentification, profil utilisateur, et 
 
 ### Structure d'une réponse d'erreur
 
-Toutes les erreurs retournent le format suivant :
+Toutes les erreurs retournent le format suivant (champs `code` / `httpStatus` / `timestamp` / `details`) :
 
 ```json
 {
-  "errorCode": "ERR_INVALID_CREDENTIALS",
-  "status": 401,
-  "timestamp": "2026-06-12T10:30:00Z"
+  "code": "ERR_INVALID_CREDENTIALS",
+  "httpStatus": 401,
+  "timestamp": "2026-07-14T10:30:00Z",
+  "details": null
 }
 ```
 
-En cas d'erreur de validation (400), le champ `errors` est présent :
+En cas d'erreur de validation (400), le champ **`details`** contient la map `champ → message` :
 
 ```json
 {
-  "errorCode": "ERR_VALIDATION",
-  "status": 400,
-  "errors": {
+  "code": "ERR_VALIDATION",
+  "httpStatus": 400,
+  "timestamp": "2026-07-14T10:30:00Z",
+  "details": {
     "email": "must not be blank",
     "password": "Le mot de passe doit contenir au moins 8 caractères"
   }
 }
 ```
+
+> 👉 Testez toujours **`code`** (stable) plutôt que le message. ⚠️ Anciennement `errorCode` / `status` / `errors` — voir les breaking changes en tête de document.
 
 ---
 
@@ -109,7 +157,7 @@ Content-Type: application/json
 ```
 
 **Erreurs possibles :**
-| Code HTTP | errorCode | Signification |
+| Code HTTP | code | Signification |
 |---|---|---|
 | 409 | `ERR_ACCOUNT_ALREADY_EXISTS` | Email déjà utilisé |
 | 400 | `ERR_VALIDATION` | Email invalide ou mot de passe trop court |
@@ -153,7 +201,7 @@ Content-Type: application/json
 ```
 
 **Erreurs possibles :**
-| Code HTTP | errorCode | Signification |
+| Code HTTP | code | Signification |
 |---|---|---|
 | 401 | `ERR_INVALID_CREDENTIALS` | Email ou mot de passe incorrect |
 | 403 | `ERR_ACCOUNT_SUSPENDED` | Compte suspendu par un admin |
@@ -188,7 +236,7 @@ Content-Type: application/json
 ```
 
 **Erreurs possibles :**
-| Code HTTP | errorCode | Signification |
+| Code HTTP | code | Signification |
 |---|---|---|
 | 404 | `ERR_OTP_INVALID` | OTP incorrect |
 | 401 | `ERR_OTP_EXPIRED` | OTP expiré (valable 10 min) |
@@ -249,13 +297,13 @@ Content-Type: application/json
 **Réponse 200 :** identique à 3.1
 
 **Erreurs possibles pour Google :**
-| Code HTTP | errorCode | Signification |
+| Code HTTP | code | Signification |
 |---|---|---|
 | 401 | `ERR_GOOGLE_TOKEN_INVALID` | Token/code Google invalide ou expiré |
 | 400 | `ERR_GOOGLE_EMAIL_NOT_VERIFIED` | Email Google non vérifié |
 | 403 | `ERR_ACCOUNT_SUSPENDED` | Compte existant suspendu |
 
-> **Option A — Fusion de comptes :** si l'email Google correspond à un compte CargoTrust existant (créé avec email/mot de passe), les deux sont automatiquement fusionnés. Les nouveaux comptes Google reçoivent le rôle `ROLE_IMPORTER` par défaut.
+> **Option A — Fusion de comptes :** si l'email Google correspond à un compte CargoTrust existant (créé avec email/mot de passe), les deux sont automatiquement fusionnés. Les nouveaux comptes Google reçoivent le rôle **`ROLE_CLIENT`** par défaut.
 
 ---
 
@@ -267,12 +315,14 @@ Content-Type: application/json
 {
   "sub": "a1b2c3d4-...",
   "email": "user@example.com",
-  "role": "ROLE_IMPORTER",
-  "permissions": ["orders:create", "orders:read", "shipments:read"],
+  "role": "ROLE_CLIENT",
+  "permissions": ["orders:create", "orders:read", "orders:cancel", "shipments:read", "proofs:read", "payments:read", "payments:initiate", "incidents:read"],
   "iat": 1718100000,
   "exp": 1718100900
 }
 ```
+
+> `role` vaut l'une de : `ROLE_CLIENT`, `ROLE_TRANSITAIRE`, `ROLE_ADMIN_TRANSITAIRE`, `ROLE_SUPER_ADMIN`. `permissions` dépend du rôle (voir §9.2).
 
 | Champ | Type | Description |
 |---|---|---|
@@ -318,7 +368,7 @@ Content-Type: application/json
 > **Important :** le refresh token retourné est différent du précédent. Mettez toujours à jour le token stocké (rotation des tokens).
 
 **Erreurs possibles :**
-| Code HTTP | errorCode | Signification |
+| Code HTTP | code | Signification |
 |---|---|---|
 | 401 | `ERR_REFRESH_TOKEN_INVALID` | Token inconnu |
 | 401 | `ERR_REFRESH_TOKEN_EXPIRED` | Token expiré (30 jours) |
@@ -363,7 +413,7 @@ Authorization: Bearer <token>
 {
   "accountId": "a1b2c3d4-...",
   "email": "user@example.com",
-  "role": "ROLE_IMPORTER"
+  "role": "ROLE_CLIENT"
 }
 ```
 
@@ -418,7 +468,7 @@ Content-Type: application/json
 ```
 
 **Erreurs possibles :**
-| Code HTTP | errorCode | Signification |
+| Code HTTP | code | Signification |
 |---|---|---|
 | 404 | `ERR_PASSWORD_RESET_TOKEN_INVALID` | Token inconnu |
 | 401 | `ERR_PASSWORD_RESET_TOKEN_EXPIRED` | Token expiré (1h) |
@@ -481,14 +531,7 @@ Content-Type: application/json
 }
 ```
 
-**Valeurs `roleMetadata` selon le rôle :**
-
-| Rôle | Clés acceptées |
-|---|---|
-| `ROLE_IMPORTER` | `importerType`: `"SME"` \| `"BEGINNER"` \| `"ECOMMERCE"` \| `"LARGE_IMPORTER"` |
-| `ROLE_AGENT` | `position`, `forwarderId` (UUID) |
-| `ROLE_ADMIN_FORWARDER` | `operationalPosition`, `forwarderId` (UUID), `additionalPermissions` (array) |
-| `ROLE_SUPER_*` | `superRole`: `"DEVELOPER"` \| `"COMMERCIAL"` \| `"ACCOUNTANT"` \| `"SUPER_ADMIN"` |
+> ⚠️ **`roleMetadata` est désormais superflu** pour la logique métier CLIENT / TRANSITAIRE : les données spécifiques au rôle passent par des modules dédiés — profil importateur `/api/v1/importer`, entreprise de transit `/api/v1/forwarders` (voir `README_PROFILES.md`). Le champ existe toujours dans le modèle mais ne conditionne plus les écrans ; ne construisez plus vos parcours dessus.
 
 **Réponse 200 :** `ProfileResponse` (même structure que 6.1)
 
@@ -508,7 +551,7 @@ Content-Type: multipart/form-data
 **Réponse 200 :** `ProfileResponse` avec le nouveau `profilePhotoUrl`
 
 **Erreurs possibles :**
-| Code HTTP | errorCode | Signification |
+| Code HTTP | code | Signification |
 |---|---|---|
 | 400 | `ERR_PROFILE_PHOTO_INVALID` | Format non supporté |
 | 400 | `ERR_PROFILE_PHOTO_TOO_LARGE` | Fichier > 5 Mo |
@@ -541,8 +584,17 @@ Authorization: Bearer <token>
 
 ## 7. Administration — Gestion des utilisateurs
 
-> **Accès réservé aux rôles super :**  
-> `ROLE_SUPER_RESPONSIBLE`, `ROLE_SUPER_COMMERCIAL`, `ROLE_SUPER_FINANCIAL`, `ROLE_SUPER_PACKAGE`
+L'accès est **différencié par endpoint** (plus « les rôles super »). Requis :
+
+| Endpoint | Rôles autorisés |
+|---|---|
+| `GET /admin/users` (liste/recherche) | `ROLE_ADMIN_TRANSITAIRE`, `ROLE_SUPER_ADMIN` |
+| `GET /admin/users/{id}` (détail) | `ROLE_ADMIN_TRANSITAIRE`, `ROLE_SUPER_ADMIN` |
+| `POST /admin/users` (créer un compte) | `ROLE_ADMIN_TRANSITAIRE`, `ROLE_SUPER_ADMIN` |
+| `PATCH /admin/users/{id}/status` | `ROLE_SUPER_ADMIN` |
+| `PATCH /admin/users/{id}/role` | `ROLE_SUPER_ADMIN` |
+
+> Un `ROLE_ADMIN_TRANSITAIRE` ne peut créer que des comptes `ROLE_TRANSITAIRE` ou `ROLE_CLIENT` (anti-escalade → `403 ERR_CANNOT_CREATE_ROLE` sinon). Côté UI, n'affichez les boutons « changer statut/rôle » qu'aux `ROLE_SUPER_ADMIN`, sous peine de `403 ERR_FORBIDDEN`.
 
 Compte super admin par défaut créé au démarrage :
 - **Email :** `cargotrust237@gmail.com`
@@ -553,7 +605,7 @@ Compte super admin par défaut créé au démarrage :
 ### 7.1 — Lister / rechercher des utilisateurs
 
 ```
-GET /api/v1/admin/users?email=dupont&status=ACTIVE&role=ROLE_IMPORTER&page=0&size=20
+GET /api/v1/admin/users?email=dupont&status=ACTIVE&role=ROLE_CLIENT&page=0&size=20
 Authorization: Bearer <token>
 ```
 
@@ -563,7 +615,7 @@ Authorization: Bearer <token>
 |---|---|---|---|
 | `email` | string | Recherche partielle (LIKE %email%) | optionnel |
 | `status` | string | Filtre par statut | `ACTIVE`, `SUSPENDED`, `PENDING_VERIFICATION` |
-| `role` | string | Filtre par rôle | `ROLE_IMPORTER`, `ROLE_AGENT`, etc. |
+| `role` | string | Filtre par rôle (préfixe `ROLE_` auto-ajouté si absent) | `ROLE_CLIENT`, `ROLE_TRANSITAIRE`, `ROLE_ADMIN_TRANSITAIRE`, `ROLE_SUPER_ADMIN` |
 | `page` | int | Page (0-based) | défaut : `0` |
 | `size` | int | Éléments par page | `1–100`, défaut : `20` |
 
@@ -575,7 +627,7 @@ Authorization: Bearer <token>
       "id": "a1b2c3d4-...",
       "email": "jean.dupont@example.com",
       "status": "ACTIVE",
-      "role": "ROLE_IMPORTER",
+      "role": "ROLE_CLIENT",
       "firstName": "Jean",
       "lastName": "Dupont",
       "profileComplete": true,
@@ -606,7 +658,7 @@ Authorization: Bearer <token>
   "id": "a1b2c3d4-...",
   "email": "jean.dupont@example.com",
   "status": "ACTIVE",
-  "role": "ROLE_IMPORTER",
+  "role": "ROLE_CLIENT",
   "createdAt": "2026-06-01T08:00:00Z",
   "updatedAt": "2026-06-10T14:30:00Z",
   "profile": {
@@ -649,7 +701,7 @@ Content-Type: application/json
 **Réponse 200 :** `UserDetailResponse` mis à jour
 
 **Erreurs possibles :**
-| Code HTTP | errorCode | Signification |
+| Code HTTP | code | Signification |
 |---|---|---|
 | 404 | `ERR_ACCOUNT_NOT_FOUND` | Utilisateur introuvable |
 | 400 | `ERR_INVALID_STATUS` | Valeur de statut invalide |
@@ -667,16 +719,16 @@ Content-Type: application/json
 **Corps de la requête :**
 ```json
 {
-  "roleName": "ROLE_AGENT"
+  "roleName": "ROLE_TRANSITAIRE"
 }
 ```
 
-**Valeurs acceptées :** voir [tableau des rôles section 9](#91--rôles-disponibles)
+**Valeurs acceptées :** `ROLE_CLIENT`, `ROLE_TRANSITAIRE`, `ROLE_ADMIN_TRANSITAIRE`, `ROLE_SUPER_ADMIN` (voir [§9.1](#91--rôles-disponibles))
 
 **Réponse 200 :** `UserDetailResponse` mis à jour
 
 **Erreurs possibles :**
-| Code HTTP | errorCode | Signification |
+| Code HTTP | code | Signification |
 |---|---|---|
 | 404 | `ERR_ROLE_NOT_FOUND` | Rôle inexistant |
 | 403 | `ERR_CANNOT_CHANGE_OWN_ROLE` | Un admin ne peut pas changer son propre rôle |
@@ -685,7 +737,7 @@ Content-Type: application/json
 
 ## 8. Administration — Rôles et permissions
 
-> **Accès réservé aux rôles super** (mêmes que section 7)
+> **Accès réservé à `ROLE_SUPER_ADMIN`** (toute la section `/api/v1/admin/roles` et `/api/v1/admin/permissions`).
 
 ---
 
@@ -701,11 +753,11 @@ Authorization: Bearer <token>
 [
   {
     "id": 1,
-    "name": "ROLE_IMPORTER",
-    "displayName": "Importateur",
-    "description": "Utilisateur final qui importe des marchandises",
+    "name": "ROLE_CLIENT",
+    "displayName": "Client",
+    "description": "Client (importateur) — commandes, paiements, suivi",
     "system": true,
-    "permissions": ["orders:create", "orders:read", "shipments:read", "payments:initiate"]
+    "permissions": ["orders:create", "orders:read", "orders:cancel", "shipments:read", "proofs:read", "payments:read", "payments:initiate", "incidents:read"]
   }
 ]
 ```
@@ -757,7 +809,7 @@ Authorization: Bearer <token>
 **Réponse 204 No Content**
 
 **Erreurs possibles :**
-| Code HTTP | errorCode | Signification |
+| Code HTTP | code | Signification |
 |---|---|---|
 | 400 | `ERR_ROLE_IS_SYSTEM` | Impossible de supprimer un rôle système |
 | 404 | `ERR_ROLE_NOT_FOUND` | Rôle introuvable |
@@ -838,17 +890,16 @@ DELETE /api/v1/admin/permissions/{permissionId} → 204
 
 ## 9. Système de rôles et permissions (RBAC)
 
-### 9.1 — Rôles disponibles
+### 9.1 — Rôles disponibles (4)
 
-| Rôle | Cible | Description |
-|---|---|---|
-| `ROLE_IMPORTER` | Utilisateurs finaux | Importateurs de marchandises |
-| `ROLE_AGENT` | Employés transitaires | Agents de terrain |
-| `ROLE_ADMIN_FORWARDER` | Admins transitaires | Gestion d'une entreprise de transit |
-| `ROLE_SUPER_RESPONSIBLE` | Super admin principal | Accès total + gestion des comptes |
-| `ROLE_SUPER_COMMERCIAL` | Admin commercial | Vue commerciale de la plateforme |
-| `ROLE_SUPER_FINANCIAL` | Admin financier | Vue financière de la plateforme |
-| `ROLE_SUPER_PACKAGE` | Admin packages | Gestion des forfaits |
+| Rôle | Cible | Description | Permissions par défaut |
+|---|---|---|---|
+| `ROLE_CLIENT` | Importateur / acheteur | Créer commandes, payer, suivre | `orders:create`, `orders:read`, `orders:cancel`, `shipments:read`, `proofs:read`, `payments:read`, `payments:initiate`, `incidents:read` |
+| `ROLE_TRANSITAIRE` | Agent de terrain (employé) | Opérations terrain : scan, preuves | `orders:read`, `shipments:read`, `shipments:update`, `proofs:create`, `proofs:read`, `incidents:read` |
+| `ROLE_ADMIN_TRANSITAIRE` | Propriétaire d'entreprise de transit | Back-office transitaire + gestion agents | `orders:read_all`, `orders:update`, `shipments:read`, `shipments:update`, `proofs:read`, `payments:read`, `payments:validate`, `users:read`, `incidents:read`, `incidents:manage` |
+| `ROLE_SUPER_ADMIN` | Administration CargoTrust | Accès total | **toutes** les permissions (dont `forwarders:read/manage`, `catalog:manage`, `users:manage`) |
+
+> ⚠️ `ROLE_ADMIN_TRANSITAIRE` n'a **pas** `forwarders:read/manage` ni `catalog:manage` : les écrans d'administration des transitaires et du catalogue sont réservés à `ROLE_SUPER_ADMIN`.
 
 ---
 
@@ -872,6 +923,8 @@ DELETE /api/v1/admin/permissions/{permissionId} → 204
 | `users:manage` | users | manage | Gérer les comptes utilisateurs |
 | `forwarders:read` | forwarders | read | Voir les transitaires |
 | `forwarders:manage` | forwarders | manage | Gérer les transitaires |
+| `catalog:read` | catalog | read | Voir le catalogue (catégories) |
+| `catalog:manage` | catalog | manage | Gérer les catégories de produits |
 | `analytics:read` | analytics | read | Voir les analyses |
 | `incidents:read` | incidents | read | Voir les incidents |
 | `incidents:manage` | incidents | manage | Gérer les incidents |
@@ -922,9 +975,9 @@ export class AuthService {
 
 ## 10. Codes d'erreur
 
-Référence complète de tous les codes d'erreur retournés par le module IAM :
+Référence complète des codes retournés par le module IAM. Rappel du format : `{ "code", "httpStatus", "timestamp", "details" }` (le code est dans **`code`**, pas `errorCode`).
 
-| errorCode | HTTP | Contexte |
+| code | HTTP | Contexte |
 |---|---|---|
 | `ERR_ACCOUNT_NOT_FOUND` | 404 | Compte inexistant |
 | `ERR_ACCOUNT_ALREADY_EXISTS` | 409 | Email déjà utilisé |
@@ -951,7 +1004,8 @@ Référence complète de tous les codes d'erreur retournés par le module IAM :
 | `ERR_PERMISSION_NOT_FOUND` | 404 | Permission inexistante |
 | `ERR_PERMISSION_ALREADY_EXISTS` | 409 | Nom de permission déjà pris |
 | `ERR_CANNOT_CHANGE_OWN_ROLE` | 403 | Un admin ne peut pas modifier son propre rôle |
-| `ERR_FORBIDDEN` | 403 | Accès interdit (droits insuffisants) |
+| `ERR_CANNOT_CREATE_ROLE` | 403 | Un ADMIN_TRANSITAIRE tente de créer un rôle non autorisé |
+| `ERR_FORBIDDEN` | 403 | Accès interdit (droits insuffisants / rôle manquant) |
 | `ERR_VALIDATION` | 400 | Erreur de validation du corps de la requête |
 | `ERR_NOT_FOUND` | 404 | Ressource introuvable |
 | `ERR_INTERNAL` | 500 | Erreur serveur inattendue |
@@ -1127,4 +1181,4 @@ export const appConfig: ApplicationConfig = {
 
 ---
 
-*Dernière mise à jour : 2026-06-12 — Module IAM v1.0*
+*Dernière mise à jour : 2026-07-14 — Module IAM v1.1 (refonte 4 rôles + format d'erreur `code`/`httpStatus`/`details`)*

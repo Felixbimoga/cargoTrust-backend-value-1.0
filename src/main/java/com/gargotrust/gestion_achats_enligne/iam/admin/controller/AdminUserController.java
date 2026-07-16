@@ -42,7 +42,7 @@ public class AdminUserController implements IAdminUserController {
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('ADMIN_TRANSITAIRE')")
+    @PreAuthorize("hasAnyRole('ADMIN_TRANSITAIRE', 'SUPER_ADMIN')")
     public ResponseEntity<UserDetailResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(adminUserService.createUser(request));
     }

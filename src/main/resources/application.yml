@@ -4,6 +4,13 @@ spring:
   profiles:
     active: dev
 
+  servlet:
+    multipart:
+      # Plafond technique = plus grande limite métier (documents KYC = 10 Mo).
+      # Les images (logo/cover/photo, 5 Mo) restent bornées côté service (StorageService).
+      max-file-size: 10MB
+      max-request-size: 15MB
+
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/cargotrust_dev?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
     username: ${DB_USERNAME:root}
