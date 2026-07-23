@@ -59,8 +59,8 @@ public class AuthService implements IAuthService {
                 .build();
         accountRepository.save(account);
 
-        Role role = roleRepository.findByName(Role.CLIENT)
-                .orElseThrow(() -> new RuntimeException("ROLE_CLIENT not found in DB"));
+        Role role = roleRepository.findByName(Role.ADMIN_TRANSITAIRE)
+                .orElseThrow(() -> new RuntimeException("ROLE_ADMIN_TRANSITAIRE not found in DB"));
         AccountRole accountRole = AccountRole.builder().account(account).role(role).build();
         account.getAccountRoles().add(accountRole);
         accountRepository.save(account);
