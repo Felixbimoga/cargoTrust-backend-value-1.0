@@ -21,10 +21,11 @@ import java.util.List;
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
 
-    private final RoleRepository    roleRepository;
-    private final AccountRepository accountRepository;
-    private final PasswordEncoder   passwordEncoder;
-    private final IProfileService   profileService;
+    private final RoleRepository        roleRepository;
+    private final AccountRepository     accountRepository;
+    private final PasswordEncoder       passwordEncoder;
+    private final IProfileService       profileService;
+    private final PermissionInitializer permissionInitializer;
 
     @Value("${app.super-admin.email}")
     private String superAdminEmail;
@@ -48,6 +49,7 @@ public class DataInitializer implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         initializeRoles();
+        permissionInitializer.seed();
         initializeSuperAdmin();
         initializeAdminTransitaire();
         initializeTransitaire();
